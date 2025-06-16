@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "8080:80" # Map host port 80 to container port 80
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "3000:3000" # Map host port 3000 to container port 3000
+    environment:
+      DB_HOST: mysql_db
+      DB_USER: root     # เรายังคงตั้งค่า user ใน server.js เป็น 'root'
+      DB_PASSWORD: password
+      DB_NAME: myDatabase
+    depends_on:
+      - mysql_db
+    networks:
+      - app-network
+
+  mysql_db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: password # แก้ไขตรงนี้: ลบ MYSQL_USER และ MYSQL_PASSWORD ที่เป็น root ออก แล้วใช้ MYSQL_ROOT_PASSWORD อย่างเดียว
+      MYSQL_DATABASE: myDatabase
+      # ไม่ต้องมี MYSQL_USER: root และ MYSQL_PASSWORD: password สำหรับ root user
+    volumes:
+      - db_data:/var/lib/mysql
+      # Uncomment the line below if you have an init.sql file
+      # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db_data:

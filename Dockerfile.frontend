@@ -1,0 +1,36 @@
+# ใช้ Node.js official image เป็น base image สำหรับ build stage
+FROM node:18-alpine as build-stage
+
+# กำหนด working directory ภายใน container
+WORKDIR /app
+
+# คัดลอก package.json และ package-lock.json (ถ้ามี)
+COPY package*.json ./
+
+# ติดตั้ง dependencies
+RUN npm install
+
+# คัดลอกไฟล์โปรเจกต์ทั้งหมดไปยัง working directory
+COPY . .
+
+# รัน build command ของ Vite
+RUN npm run build
+
+# ใช้ Nginx เพื่อ serve static files ใน production
+FROM nginx:alpine as production-stage
+
+# คัดลอก build artifacts จาก build stage ไปยัง Nginx web root
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+
+# คัดลอก public directory ไปยัง Nginx web root
+COPY public /usr/share/nginx/html/public
+
+# ลบ default.conf ของ Nginx และสร้าง custom config
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# เปิด port ที่ Nginx จะให้บริการ (default HTTP port)
+EXPOSE 80
+
+# กำหนดคำสั่งเริ่มต้นเมื่อ container รัน
+CMD ["nginx", "-g", "daemon off;"]
