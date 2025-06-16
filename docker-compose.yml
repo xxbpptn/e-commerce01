@@ -33,13 +33,10 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: password # แก้ไขตรงนี้: ลบ MYSQL_USER และ MYSQL_PASSWORD ที่เป็น root ออก แล้วใช้ MYSQL_ROOT_PASSWORD อย่างเดียว
+      MYSQL_ROOT_PASSWORD: password 
       MYSQL_DATABASE: myDatabase
-      # ไม่ต้องมี MYSQL_USER: root และ MYSQL_PASSWORD: password สำหรับ root user
     volumes:
       - db_data:/var/lib/mysql
-      # Uncomment the line below if you have an init.sql file
-      # - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app-network
 
